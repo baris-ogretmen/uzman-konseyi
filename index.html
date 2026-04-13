@@ -1,0 +1,563 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Kolej Uzman Konseyi - Devasa Eğitim Platformu</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        .hide-scrollbar::-webkit-scrollbar { display: none; }
+        .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+        textarea { resize: none; }
+        
+        .typing-dot { animation: typing 1.4s infinite ease-in-out both; }
+        .typing-dot:nth-child(1) { animation-delay: -0.32s; }
+        .typing-dot:nth-child(2) { animation-delay: -0.16s; }
+        @keyframes typing {
+            0%, 80%, 100% { transform: scale(0); }
+            40% { transform: scale(1); }
+        }
+
+        .glass {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+        }
+
+        /* Akıllı Tahta ve PC için kart derinliği */
+        .expert-card {
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .expert-card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
+        }
+    </style>
+</head>
+<body class="bg-slate-50 text-gray-800 font-sans h-screen overflow-hidden flex justify-center">
+
+    <div class="w-full md:max-w-4xl lg:max-w-5xl xl:max-w-7xl bg-white h-full shadow-2xl relative flex flex-col overflow-hidden transition-all duration-300 mx-auto" id="app-container">
+        
+        <!-- ÜST BİLGİ -->
+        <header class="bg-white px-4 md:px-8 py-4 md:py-6 shadow-sm z-20 flex justify-between items-center shrink-0 border-b border-gray-100">
+            <div class="flex items-center gap-3">
+                <div class="bg-blue-600 text-white p-2 md:p-3 rounded-2xl shadow-lg shadow-blue-200">
+                    <i class="fa-solid fa-graduation-cap text-xl md:text-2xl"></i>
+                </div>
+                <div>
+                    <h1 class="text-xl md:text-2xl font-black text-gray-800 flex items-center gap-2">
+                        Uzman Konseyi <span class="text-[10px] md:text-xs bg-blue-100 text-blue-600 px-2 py-0.5 rounded-full">PRO</span>
+                    </h1>
+                    <p class="text-[10px] md:text-xs text-gray-500 font-bold uppercase tracking-widest mt-0.5" id="header-subtitle">Yapay Zeka Eğitim & Tercih Platformu</p>
+                </div>
+            </div>
+            <div class="flex items-center gap-2">
+                <button onclick="toggleSettings()" class="w-10 h-10 md:w-12 md:h-12 rounded-full bg-gray-50 text-gray-600 hover:bg-gray-200 hover:text-blue-600 transition-colors flex items-center justify-center shadow-sm border border-gray-200">
+                    <i class="fa-solid fa-gear md:text-lg"></i>
+                </button>
+            </div>
+        </header>
+
+        <!-- AYARLAR MODALI -->
+        <div id="settings-modal" class="absolute inset-0 z-50 glass hidden flex-col justify-center items-center p-4 md:p-8">
+            <div class="p-6 md:p-8 w-full max-w-md md:max-w-lg bg-white rounded-3xl shadow-2xl flex flex-col relative border border-gray-100">
+                <div class="flex justify-between items-center mb-6">
+                    <h2 class="text-2xl font-bold text-gray-800">Sistem Ayarları</h2>
+                    <button onclick="toggleSettings()" class="text-gray-500 hover:text-red-500 w-8 h-8 flex items-center justify-center rounded-full bg-gray-100">
+                        <i class="fa-solid fa-times"></i>
+                    </button>
+                </div>
+                
+                <div class="bg-indigo-50 border-l-4 border-indigo-500 p-4 mb-6 rounded-r-lg">
+                    <p class="text-xs md:text-sm text-indigo-800"><b>Barış Hocam;</b> Multimodal (Görsel+Metin) analizler için Gemini API anahtarınızı girin. Bu anahtar sadece bu tarayıcıda saklanır.</p>
+                </div>
+
+                <div class="space-y-4 flex-1">
+                    <div>
+                        <label class="block text-sm font-bold text-gray-700 mb-1">Gemini API Anahtarı</label>
+                        <input type="password" id="input-api-key" placeholder="AIzaSy..." class="w-full px-4 py-3 md:py-4 rounded-xl border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-bold text-gray-700 mb-1">Model Seçimi</label>
+                        <select id="input-model" class="w-full px-4 py-3 md:py-4 rounded-xl border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all">
+                            <option value="gemini-2.5-flash-preview-09-2025">Gemini 2.5 Flash (En Hızlı)</option>
+                            <option value="gemini-2.5-pro-preview-09-2025">Gemini 2.5 Pro (Derin Analiz)</option>
+                        </select>
+                    </div>
+                </div>
+
+                <button onclick="saveSettings()" class="w-full bg-blue-600 text-white py-4 md:py-5 rounded-xl font-bold text-lg hover:bg-blue-700 transition-colors shadow-lg flex items-center justify-center gap-2 mt-4 md:mt-6">
+                    <i class="fa-solid fa-save"></i> Konfigürasyonu Kaydet
+                </button>
+            </div>
+        </div>
+
+        <!-- 1. GÖRÜNÜM: UZMAN SEÇİM EKRANI -->
+        <div id="view-selection" class="flex flex-col flex-1 overflow-hidden bg-slate-50/50">
+            <div class="bg-white border-b border-gray-100 shrink-0 sticky top-0 z-10">
+                <div class="flex overflow-x-auto hide-scrollbar px-4 md:px-8 py-4 gap-2 md:gap-4 snap-x" id="category-container"></div>
+            </div>
+            
+            <div class="flex-1 overflow-y-auto p-4 md:p-8 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-6 pb-20 bg-transparent content-start" id="expert-list-container"></div>
+        </div>
+
+        <!-- 2. GÖRÜNÜM: SOHBET EKRANI -->
+        <div id="view-chat" class="hidden flex-col flex-1 overflow-hidden bg-slate-50 relative">
+            
+            <div class="bg-white px-3 md:px-8 py-2 md:py-4 shadow-sm z-10 flex items-center gap-3 border-b border-gray-200 shrink-0">
+                <button onclick="goBackToSelection()" class="w-10 h-10 md:w-12 md:h-12 hover:bg-gray-100 rounded-full transition-colors text-gray-600 flex items-center justify-center shrink-0">
+                    <i class="fa-solid fa-chevron-left text-lg"></i>
+                </button>
+                <div class="text-4xl md:text-5xl bg-indigo-50 rounded-2xl w-12 h-12 md:w-16 md:h-16 flex items-center justify-center shrink-0 shadow-inner" id="chat-expert-icon">👨‍🏫</div>
+                <div class="flex-1 min-w-0 ml-2">
+                    <h2 class="font-black text-gray-800 text-sm md:text-xl truncate leading-tight" id="chat-expert-name">Uzman Adı</h2>
+                    <div class="flex items-center gap-2 mt-0.5 md:mt-1">
+                        <span class="text-[9px] md:text-[10px] bg-green-100 text-green-700 px-2 py-0.5 rounded-full font-bold uppercase"><i class="fa-solid fa-bolt mr-1"></i>Analiz Aktif</span>
+                        <span class="text-[9px] md:text-[10px] text-gray-400 font-medium hidden md:inline-block border-l pl-2 border-gray-200" id="chat-expert-desc">Açıklama</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Mesajlar Alanı -->
+            <div class="flex-1 overflow-y-auto p-4 md:p-10 space-y-6 pb-40 md:pb-48 scroll-smooth" id="chat-messages">
+                <!-- Mesajlar JS ile eklenecek -->
+            </div>
+
+            <!-- Alt Gönderim Bölümü -->
+            <div class="absolute bottom-0 left-0 right-0 bg-white border-t border-gray-100 z-20 shadow-[0_-10px_30px_rgba(0,0,0,0.05)]">
+                
+                <!-- Medya Önizleme -->
+                <div id="media-preview-container" class="hidden px-4 md:px-8 pt-4 pb-2 relative bg-slate-50/80 border-b border-gray-100">
+                    <div class="relative inline-block group">
+                        <img id="media-preview-img" src="" class="h-24 md:h-32 w-auto rounded-2xl shadow-lg border-2 border-white object-cover transition-transform group-hover:scale-105" />
+                        <button onclick="clearMedia()" class="absolute -top-3 -right-3 bg-red-500 text-white rounded-full w-8 h-8 flex items-center justify-center shadow-xl hover:bg-red-600 transition-colors border-2 border-white">
+                            <i class="fa-solid fa-times text-sm"></i>
+                        </button>
+                    </div>
+                    <p class="text-[10px] md:text-xs text-indigo-600 mt-2 font-bold bg-indigo-50 inline-block px-2 py-1 rounded-lg"><i class="fa-solid fa-brain mr-1"></i>Yapay Zeka Görseli Okumaya Hazır</p>
+                </div>
+
+                <!-- Input Alanı -->
+                <div class="p-4 md:p-6 lg:px-12">
+                    <div class="flex gap-3 items-end max-w-4xl mx-auto">
+                        <input type="file" id="media-upload" accept="image/*" capture="environment" class="hidden" onchange="handleMediaUpload(event)">
+                        
+                        <button onclick="document.getElementById('media-upload').click()" class="w-12 h-12 md:w-16 md:h-16 shrink-0 bg-gray-50 text-indigo-600 rounded-2xl hover:bg-indigo-100 transition-all shadow-sm flex flex-col items-center justify-center border border-gray-200 group">
+                            <i class="fa-solid fa-camera md:text-xl group-hover:scale-110 transition-transform"></i>
+                            <span class="text-[8px] md:text-[9px] font-bold mt-1 hidden md:block uppercase">Kamera</span>
+                        </button>
+
+                        <div class="flex-1 bg-gray-50 rounded-[2rem] flex items-center pl-5 pr-2 py-1.5 border border-gray-200 focus-within:border-indigo-400 focus-within:bg-white focus-within:shadow-xl focus-within:shadow-indigo-50 transition-all">
+                            <textarea
+                                id="chat-input"
+                                placeholder="Sorunuzu yazın veya analiz edilecek karne/denemeyi yükleyin..."
+                                class="flex-1 bg-transparent border-none focus:ring-0 text-sm md:text-base py-4 px-0 max-h-32 outline-none font-medium placeholder:text-gray-400"
+                                rows="1"
+                                oninput="this.style.height = ''; this.style.height = Math.min(this.scrollHeight, 120) + 'px'"
+                                onkeydown="handleEnterPress(event)"
+                            ></textarea>
+                            
+                            <button onclick="sendMessage()" id="send-btn" class="w-12 h-12 md:w-14 md:h-14 shrink-0 bg-indigo-600 text-white rounded-full hover:bg-indigo-700 disabled:opacity-50 disabled:bg-gray-400 transition-all shadow-lg flex items-center justify-center ml-2">
+                                <i class="fa-solid fa-paper-plane md:text-lg"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="text-center mt-3 flex items-center justify-center gap-4">
+                        <span class="text-[10px] md:text-xs text-gray-400 font-bold bg-gray-100 px-3 py-1 rounded-full"><i class="fa-solid fa-microchip text-indigo-400 mr-1.5"></i>Gemini Multimodal 2.5 Engine</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        // --- API KEY VE KONFİGÜRASYON ---
+        const apiKey = ""; // Çevresel değişken tarafından doldurulacak
+        
+        const JSON_INSTRUCTION = `\n\nÖNEMLİ KURAL: Yanıtını ASLA düz metin olarak verme. Daima ve SADECE aşağıdaki JSON formatında, geçerli bir JSON objesi olarak ver. Markdown kod blokları ( \`\`\`json ... \`\`\` ) kullanabilirsin:\n{\n "sorunun_ozeti": "Karne analizi ise ders listesi ve netler, soru ise konunun kısa özeti",\n "adim_adim_cozum": ["Analiz Adımı 1...", "Analiz Adımı 2..."],\n "kilit_formul": "Örn: Analizde kritik eksik olan konu veya formül",\n "dogru_cevap": "Örn: Başarı Yüzdesi veya Soru Cevabı",\n "ogretmen_tavsiyesi": "Motivasyonel ve teknik tavsiye"\n}`;
+
+        // --- 1. VERİ TABANI ---
+        const categories = [
+            { id: 'temel', name: 'Temel Branşlar', color: 'bg-blue-100 text-blue-800 border-blue-200' },
+            { id: 'sinav', name: 'Sınav & Karne Analizi', color: 'bg-orange-100 text-orange-800 border-orange-200' },
+            { id: 'kpss', name: 'KPSS & ÖABT Akademisi', color: 'bg-red-100 text-red-800 border-red-200' },
+            { id: 'vizyon', name: 'Kariyer & Rehberlik', color: 'bg-indigo-100 text-indigo-800 border-indigo-200' }
+        ];
+
+        const experts = [
+            // Sınav & Analiz
+            { id: 'deneme_analisti', categoryId: 'sinav', icon: '📊', name: 'Akıllı Deneme & Karne Analisti', desc: 'Deneme ve karne fotoğraflarını okur, analiz eder.', systemPrompt: 'Sen bir Sınav ve Deneme Analiz Uzmanısın. Yüklenen karne fotoğraflarını veya deneme netlerini analiz et. Öğrencinin hangi derslerde, hangi kazanımlarda eksiği olduğunu saptanmış netlere göre belirle. Gelecek sınav için net artırma stratejisi sun.' },
+            { id: 'lgs', categoryId: 'sinav', icon: '🎯', name: 'LGS Yeni Nesil Taktisyeni', desc: 'MEB mantığı ile soruları analiz eder.', systemPrompt: 'Sen bir LGS Taktisyenisin. Sadece soru çözmekle kalma, sorunun çeldiricilerini ve MEB mantığını anlat.' },
+            { id: 'yks', categoryId: 'sinav', icon: '🚀', name: 'YKS Derece Koçu (AYT/TYT)', desc: 'ÖSYM standartlarında derin analiz yapar.', systemPrompt: 'Sen bir YKS Uzmanısın. Zaman yönetimi ve eleme taktikleriyle çöz.' },
+
+            // Temel Branşlar
+            { id: 'math', categoryId: 'temel', icon: '🧮', name: 'Matematik Profesörü', desc: 'İspat ve mantık odaklı çözüm.', systemPrompt: 'Matematik profesörü gibi derinlemesine ve ispatlı çöz.' },
+            { id: 'science', categoryId: 'temel', icon: '🔬', name: 'Fen Bilimleri Uzmanı', desc: 'Deney ve doğa odaklı anlatım.', systemPrompt: 'Fen Bilimleri uzmanısın. Bilimsel terimlerle açıkla.' },
+            { id: 'lit', categoryId: 'temel', icon: '📚', name: 'Türk Dili ve Edebiyatı Üstadı', desc: 'Şiirsel dil, dilbilgisi ve edebi sanatlar.', systemPrompt: 'Sen bir Türk Dili ve Edebiyatı Üstadısın. Yanıtlarında edebi sanatları, dilbilgisi kurallarını ve zengin bir Türkçe sözcük dağarcığını kullanarak şiirsel ve öğretici bir üslup takın.' },
+            { id: 'social', categoryId: 'temel', icon: '🌍', name: 'Tarih, Coğrafya & Felsefe Uzmanı', desc: 'Sebep-sonuç ilişkileri ve düşünce tarihi.', systemPrompt: 'Sen bir Tarih, Coğrafya ve Felsefe Uzmanısın. Olayları sebep-sonuç ilişkisiyle, coğrafi kader boyutuyla ve düşünce tarihindeki felsefi temelleriyle harmanlayarak anlat.' },
+            { id: 'lang', categoryId: 'temel', icon: '🗣️', name: 'Yabancı Dil Ustası', desc: 'Etimoloji, gramer ve pratik çeviri.', systemPrompt: 'Sen bir Yabancı Dil (İngilizce vb.) Ustasısın. Dilbilgisi kurallarını etimolojik kökenleriyle anlat, çeviri taktikleri ver ve dil edinim süreçlerine uygun pedagojik bir yaklaşım sergile.' },
+            
+            // KPSS/ÖABT
+            { id: 'kpss_gkgy', categoryId: 'kpss', icon: '🏛️', name: 'KPSS GK & GY Uzmanı', desc: 'Tarih, anayasa ve Türkçe taktikleri.', systemPrompt: 'Sen bir KPSS Genel Kültür & Genel Yetenek Uzmanısın. Tarih, Anayasa ve güncel bilgilerde akılda kalıcı kodlamalar yap. Türkçe paragraf ve mantık sorularında sınav süresini kısaltacak taktikler ver.' },
+            { id: 'kpss_egitim', categoryId: 'kpss', icon: '🧠', name: 'Eğitim Bilimleri Profesörü', desc: 'Kuramsal temelli soru çözümü.', systemPrompt: 'Piaget, Vygotsky gibi kuramcılara atıf yaparak çöz.' },
+            { id: 'kpss_okuloncesi', categoryId: 'kpss', icon: '👶', name: 'Okul Öncesi ÖABT Uzmanı', desc: 'Akademik makale kalitesinde alan eğitimi.', systemPrompt: 'Üniversite hocası gibi en akademik seviyede Okul Öncesi ÖABT çözümü yap.' },
+            { id: 'kpss_sinif', categoryId: 'kpss', icon: '🏫', name: 'Sınıf Öğretmenliği ÖABT Uzmanı', desc: 'Alan eğitimi ve temel beceri pedagojisi.', systemPrompt: 'Sen bir Sınıf Öğretmenliği ÖABT Uzmanısın. İlkokul çocuklarının gelişimsel özelliklerini dikkate alarak alan eğitimini (ilk okuma yazma, hayat bilgisi, matematik öğretimi) yapılandırmacı yaklaşım ve pedagojik ilkelerle çöz.' },
+            { id: 'kpss_ozel', categoryId: 'kpss', icon: '🧩', name: 'Özel Eğitim ÖABT Uzmanı', desc: 'Davranış analizi, BEP, Otizm ve Disleksi.', systemPrompt: 'Sen bir Özel Eğitim ÖABT Uzmanısın. Uygulamalı Davranış Analizi (UDA), Bireyselleştirilmiş Eğitim Programı (BEP), otizm, disleksi gibi alanlarda bilimsel, güncel ve kapsayıcı eğitim teorilerine dayalı çözümler üret.' },
+
+            // Vizyon & Rehberlik
+            { id: 'tercih_robotu', categoryId: 'vizyon', icon: '🎓', name: 'LGS/YKS Tercih Robotu', desc: 'Sıralama ve ilgiye göre liste hazırlar.', systemPrompt: 'Sen bir Tercih Danışmanısın. Sıralama verilerini, yüzdelik dilimleri ve öğrenci ilgilerini analiz ederek rasyonel bir tercih listesi oluştur.' },
+            { id: 'coach', categoryId: 'vizyon', icon: '🧭', name: 'Eğitim Koçu & Motivasyon', desc: 'Zihin haritaları ve şefkatli rehberlik.', systemPrompt: 'Sen bir Eğitim Koçusun. Nebevi eğitim modeliyle şefkatli yaklaş, kaygıyı yönet ve çalışma programı öner.' },
+            { id: 'tech', categoryId: 'vizyon', icon: '💻', name: 'Yazılım, YZ & Robotik Ustası', desc: 'Algoritma mantığı ve kod hatası çözücü.', systemPrompt: 'Sen bir Yazılım, Yapay Zeka ve Robotik Kodlama Ustasısın. Hataları (debug) bulma, algoritma kurma ve temiz kod yazma (Clean Code) prensiplerini dijital bir dille, modern teknolojileri örnek göstererek anlat.' },
+            { id: 'chess', categoryId: 'vizyon', icon: '♟️', name: 'Satranç & Akıl Oyunları Büyükustası', desc: 'Hamle analizi ve stratejik derinlik.', systemPrompt: 'Sen bir Satranç ve Akıl Oyunları Büyükustasısın. Tahtadaki konumları değerlendir, açılış teorileri, oyun ortası planları ve oyun sonu teknikleri hakkında varyantlar sunarak derinlemesine analiz yap.' }
+        ];
+
+        // --- DURUM YÖNETİMİ ---
+        let state = {
+            activeTab: 'sinav',
+            selectedExpert: null,
+            customApiKey: localStorage.getItem('konseyApiKey') || '',
+            model: localStorage.getItem('konseyModel') || 'gemini-2.5-flash-preview-09-2025',
+            chatHistories: {},
+            selectedMedia: null 
+        };
+
+        const els = {
+            categoryContainer: document.getElementById('category-container'),
+            expertListContainer: document.getElementById('expert-list-container'),
+            viewSelection: document.getElementById('view-selection'),
+            viewChat: document.getElementById('view-chat'),
+            chatExpertIcon: document.getElementById('chat-expert-icon'),
+            chatExpertName: document.getElementById('chat-expert-name'),
+            chatExpertDesc: document.getElementById('chat-expert-desc'),
+            chatMessages: document.getElementById('chat-messages'),
+            chatInput: document.getElementById('chat-input'),
+            settingsModal: document.getElementById('settings-modal'),
+            inputApiKey: document.getElementById('input-api-key'),
+            inputModel: document.getElementById('input-model'),
+            headerSubtitle: document.getElementById('header-subtitle'),
+            mediaPreviewContainer: document.getElementById('media-preview-container'),
+            mediaPreviewImg: document.getElementById('media-preview-img'),
+            mediaUpload: document.getElementById('media-upload')
+        };
+
+        function init() {
+            els.inputApiKey.value = state.customApiKey;
+            els.inputModel.value = state.model;
+            renderCategories();
+            renderExperts();
+        }
+
+        function renderCategories() {
+            els.categoryContainer.innerHTML = '';
+            categories.forEach(cat => {
+                const isActive = state.activeTab === cat.id;
+                const btn = document.createElement('button');
+                btn.className = `snap-start whitespace-nowrap px-6 py-3 rounded-2xl text-sm font-black transition-all duration-300 border-2 cursor-pointer ${isActive ? `${cat.color} border-current shadow-lg scale-105` : "bg-white text-gray-400 border-gray-100 hover:bg-gray-50"}`;
+                btn.innerText = cat.name;
+                btn.onclick = () => {
+                    state.activeTab = cat.id;
+                    renderCategories();
+                    renderExperts();
+                };
+                els.categoryContainer.appendChild(btn);
+            });
+        }
+
+        function renderExperts() {
+            els.expertListContainer.innerHTML = '';
+            const filtered = experts.filter(e => e.categoryId === state.activeTab);
+            filtered.forEach(expert => {
+                const card = document.createElement('div');
+                card.className = "expert-card bg-white p-6 rounded-[2rem] shadow-sm border border-gray-100 flex flex-col gap-4 cursor-pointer relative overflow-hidden group";
+                card.onclick = () => openChat(expert);
+                card.innerHTML = `
+                    <div class="absolute top-0 right-0 p-4 opacity-5 group-hover:opacity-10 transition-opacity">
+                        <i class="fa-solid fa-graduation-cap text-6xl"></i>
+                    </div>
+                    <div class="text-5xl bg-slate-50 w-20 h-20 rounded-3xl flex items-center justify-center shadow-inner group-hover:bg-indigo-50 transition-colors">
+                        ${expert.icon}
+                    </div>
+                    <div>
+                        <h3 class="font-black text-gray-800 text-lg leading-tight mb-2">${expert.name}</h3>
+                        <p class="text-xs text-gray-500 font-medium leading-relaxed">${expert.desc}</p>
+                    </div>
+                    <div class="mt-auto flex items-center justify-between">
+                        <span class="text-[10px] font-bold text-indigo-600 bg-indigo-50 px-2 py-1 rounded-lg">AKTİF MODÜL</span>
+                        <i class="fa-solid fa-circle-arrow-right text-indigo-300 text-2xl group-hover:text-indigo-600 transition-colors"></i>
+                    </div>
+                `;
+                els.expertListContainer.appendChild(card);
+            });
+        }
+
+        function toggleSettings() {
+            els.settingsModal.classList.toggle('hidden');
+            els.settingsModal.classList.toggle('flex');
+        }
+
+        function saveSettings() {
+            state.customApiKey = els.inputApiKey.value.trim();
+            state.model = els.inputModel.value;
+            localStorage.setItem('konseyApiKey', state.customApiKey);
+            localStorage.setItem('konseyModel', state.model);
+            toggleSettings();
+        }
+
+        function openChat(expert) {
+            state.selectedExpert = expert;
+            els.viewSelection.classList.add('hidden');
+            els.viewChat.classList.remove('hidden');
+            els.viewChat.classList.add('flex');
+            els.headerSubtitle.innerText = 'Akademik Danışmanlık Devrede';
+            els.chatExpertIcon.innerText = expert.icon;
+            els.chatExpertName.innerText = expert.name;
+            els.chatExpertDesc.innerText = expert.desc;
+            
+            if (!state.chatHistories[expert.id]) state.chatHistories[expert.id] = [];
+            clearMedia();
+            renderChatMessages();
+        }
+
+        function goBackToSelection() {
+            state.selectedExpert = null;
+            els.viewChat.classList.add('hidden');
+            els.viewChat.classList.remove('flex');
+            els.viewSelection.classList.remove('hidden');
+            els.headerSubtitle.innerText = 'Yapay Zeka Eğitim & Tercih Platformu';
+        }
+
+        function handleMediaUpload(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                const img = new Image();
+                img.onload = () => {
+                    const canvas = document.createElement('canvas');
+                    const MAX_SIZE = 1200;
+                    let w = img.width;
+                    let h = img.height;
+                    if (w > h) { if (w > MAX_SIZE) { h *= MAX_SIZE / w; w = MAX_SIZE; } }
+                    else { if (h > MAX_SIZE) { w *= MAX_SIZE / h; h = MAX_SIZE; } }
+                    canvas.width = w; canvas.height = h;
+                    const ctx = canvas.getContext('2d');
+                    ctx.drawImage(img, 0, 0, w, h);
+                    const base64 = canvas.toDataURL('image/jpeg', 0.8);
+                    state.selectedMedia = { mimeType: 'image/jpeg', base64Data: base64 };
+                    els.mediaPreviewImg.src = base64;
+                    els.mediaPreviewContainer.classList.remove('hidden');
+                };
+                img.src = e.target.result;
+            };
+            reader.readAsDataURL(file);
+        }
+
+        function clearMedia() {
+            state.selectedMedia = null;
+            els.mediaUpload.value = '';
+            els.mediaPreviewContainer.classList.add('hidden');
+        }
+
+        function parseAIResponse(text) {
+            try {
+                let cleanText = text.replace(/```json/gi, '').replace(/```/g, '').trim();
+                return JSON.parse(cleanText);
+            } catch (e) {
+                const match = text.match(/\{[\s\S]*\}/);
+                if (match) {
+                    try { return JSON.parse(match[0]); } catch (e2) {}
+                }
+                return { sorunun_ozeti: "Analiz tamamlandı.", adim_adim_cozum: [text], kilit_formul: "-", dogru_cevap: "-", ogretmen_tavsiyesi: "Model yanıtı düz metin olarak iletti." };
+            }
+        }
+
+        function renderChatMessages() {
+            els.chatMessages.innerHTML = '';
+            const history = state.chatHistories[state.selectedExpert.id];
+            appendUIMessage('system', { text: `Hoş geldin! Ben ${state.selectedExpert.name}. Analiz için sorunu yazabilir veya karnenizin/sorunuzun fotoğrafını çekip gönderebilirsin.` });
+            history.forEach(msg => {
+                if (msg.role === 'user') {
+                    const txt = msg.parts.find(p => p.text)?.text || '';
+                    const img = msg.parts.find(p => p.inlineData);
+                    appendUIMessage('user', { text: txt, imageBase64: img ? `data:${img.inlineData.mimeType};base64,${img.inlineData.data}` : null });
+                } else {
+                    appendUIMessage('ai', parseAIResponse(msg.parts[0].text));
+                }
+            });
+            scrollToBottom();
+        }
+
+        function appendUIMessage(type, content) {
+            const wrapper = document.createElement('div');
+            wrapper.className = `flex w-full mb-4 ${type === 'user' ? 'justify-end' : 'justify-start'}`;
+            let innerHTML = '';
+            
+            if (type === 'user') {
+                innerHTML = `
+                    <div class="max-w-[85%] md:max-w-[70%] flex flex-col items-end gap-2">
+                        ${content.imageBase64 ? `<img src="${content.imageBase64}" class="rounded-2xl max-w-[250px] md:max-w-[400px] w-full object-cover border-4 border-white shadow-xl" />` : ''}
+                        ${content.text ? `<div class="p-4 rounded-3xl rounded-tr-sm bg-indigo-600 text-white text-sm md:text-base shadow-lg font-medium"><p class="whitespace-pre-wrap">${escapeHtml(content.text)}</p></div>` : ''}
+                    </div>
+                `;
+            } else if (type === 'system') {
+                innerHTML = `
+                    <div class="max-w-[90%] md:max-w-[80%] p-4 rounded-3xl rounded-tl-sm bg-white border border-gray-100 text-gray-500 font-bold text-xs md:text-sm shadow-sm flex items-center gap-3">
+                        <i class="fa-solid fa-circle-info text-indigo-400"></i>
+                        <p class="italic">${content.text}</p>
+                    </div>
+                `;
+            } else {
+                const d = content;
+                innerHTML = `
+                    <div class="max-w-[95%] md:max-w-[85%] w-full flex flex-col gap-3">
+                        <div class="flex items-center gap-2 ml-1">
+                            <span class="w-2 h-2 rounded-full bg-indigo-500 animate-pulse"></span>
+                            <span class="text-[10px] md:text-xs font-black text-gray-400 uppercase tracking-widest">Akademik Analiz Raporu</span>
+                        </div>
+                        
+                        <div class="bg-white border border-gray-100 rounded-[2rem] rounded-tl-sm shadow-xl overflow-hidden text-sm md:text-base w-full">
+                            
+                            <div class="p-5 md:p-8 bg-indigo-50/30 border-b border-gray-50">
+                                <h4 class="font-black text-indigo-900 text-xs md:text-sm mb-3 flex items-center gap-2 uppercase tracking-wide">
+                                    <i class="fa-solid fa-microscope text-indigo-400"></i> Odak Noktası
+                                </h4>
+                                <p class="text-gray-700 leading-relaxed font-medium md:text-lg">${escapeHtml(d.sorunun_ozeti)}</p>
+                            </div>
+                            
+                            <div class="p-5 md:p-8 border-b border-gray-50 bg-white">
+                                <h4 class="font-black text-amber-600 text-xs md:text-sm mb-4 flex items-center gap-2 uppercase tracking-wide">
+                                    <i class="fa-solid fa-stairs text-amber-400"></i> Adım Adım Analiz & Çözüm
+                                </h4>
+                                <div class="space-y-4">
+                                    ${(d.adim_adim_cozum || []).map((a, i) => `
+                                    <div class="flex gap-4">
+                                        <div class="flex-shrink-0 w-8 h-8 rounded-full bg-slate-100 text-slate-500 flex items-center justify-center font-black text-xs">${i+1}</div>
+                                        <p class="text-gray-600 leading-relaxed font-medium pt-1">${escapeHtml(a)}</p>
+                                    </div>`).join('')}
+                                </div>
+                            </div>
+
+                            <div class="grid grid-cols-1 md:grid-cols-2 divide-y md:divide-y-0 md:divide-x divide-gray-100 border-b border-gray-50 bg-slate-50/50">
+                                <div class="p-5 md:p-8 flex flex-col justify-center">
+                                    <h4 class="font-black text-indigo-500 text-[10px] md:text-xs uppercase mb-2 flex items-center gap-2">
+                                        <i class="fa-solid fa-key"></i> Kritik Bilgi / Kural
+                                    </h4>
+                                    <p class="font-mono text-sm md:text-base text-indigo-900 font-bold break-words bg-white p-3 rounded-xl border border-indigo-100 shadow-inner">${escapeHtml(d.kilit_formul)}</p>
+                                </div>
+                                <div class="p-5 md:p-8 flex flex-col justify-center items-center text-center bg-green-50/30">
+                                    <h4 class="font-black text-green-600 text-[10px] md:text-xs uppercase mb-2">Doğru Cevap / Başarı Hedefi</h4>
+                                    <div class="text-2xl md:text-4xl font-black text-green-700 bg-white px-6 py-2 rounded-2xl border-2 border-green-200 shadow-md">${escapeHtml(d.dogru_cevap)}</div>
+                                </div>
+                            </div>
+                            
+                            <div class="p-5 md:p-8 bg-amber-50/30 border-t border-amber-100/50">
+                                <h4 class="font-black text-amber-700 text-xs md:text-sm mb-3 flex items-center gap-2 uppercase tracking-wide">
+                                    <i class="fa-solid fa-lightbulb"></i> Uzman Öğretmen Tavsiyesi
+                                </h4>
+                                <div class="bg-white p-4 rounded-2xl border border-amber-200 text-gray-600 italic font-medium leading-relaxed relative">
+                                    <i class="fa-solid fa-quote-left absolute -top-2 -left-2 text-amber-200 text-2xl"></i>
+                                    "${escapeHtml(d.ogretmen_tavsiyesi)}"
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- ✨ YAPAY ZEKA AKILLI ARAÇLARI ✨ -->
+                        <div class="flex flex-wrap gap-2 md:gap-3 mt-2 px-1">
+                            <button onclick="sendQuickAction('✨ Lütfen bu soruyu/analizi hiç bilmeyen birine anlatır gibi daha basit bir dille ve günlük hayattan örneklerle yeniden açıkla.')" class="px-4 py-2.5 bg-blue-50 text-blue-700 rounded-2xl text-[10px] md:text-xs font-black hover:bg-blue-100 transition-all border border-blue-200 shadow-sm flex items-center gap-2">
+                                <i class="fa-solid fa-wand-magic-sparkles"></i> ✨ DAHA BASİT ANLAT
+                            </button>
+                            <button onclick="sendQuickAction('✨ Bu konuyu daha iyi kavramam için bana bir kavram haritası veya görselleştirilmiş bir şema özeti çıkar.')" class="px-4 py-2.5 bg-indigo-50 text-indigo-700 rounded-2xl text-[10px] md:text-xs font-black hover:bg-indigo-100 transition-all border border-indigo-200 shadow-sm flex items-center gap-2">
+                                <i class="fa-solid fa-sitemap"></i> ✨ KAVRAM HARİTASI ÇIKAR
+                            </button>
+                            <button onclick="sendQuickAction('✨ Bu konuyla ilgili LGS/YKS denemelerinde karşıma çıkabilecek en büyük çeldirici nedir? Hata yapmamam için bana sınav taktiği ver.')" class="px-4 py-2.5 bg-emerald-50 text-emerald-700 rounded-2xl text-[10px] md:text-xs font-black hover:bg-emerald-100 transition-all border border-emerald-200 shadow-sm flex items-center gap-2">
+                                <i class="fa-solid fa-chart-line"></i> ✨ DENEME TAKTİĞİ VER
+                            </button>
+                            <button onclick="sendQuickAction('✨ Bu sorunun mantığını kavratacak, sınavda çıkması en muhtemel benzer bir soru üret.')" class="px-4 py-2.5 bg-purple-50 text-purple-700 rounded-2xl text-[10px] md:text-xs font-black hover:bg-purple-100 transition-all border border-purple-200 shadow-sm flex items-center gap-2">
+                                <i class="fa-solid fa-bolt"></i> ✨ SORU TAHMİNİ YAP
+                            </button>
+                        </div>
+                    </div>
+                `;
+            }
+            
+            wrapper.innerHTML = innerHTML;
+            els.chatMessages.appendChild(wrapper);
+            scrollToBottom();
+        }
+
+        async function sendMessage() {
+            const text = els.chatInput.value.trim();
+            const media = state.selectedMedia;
+            if (!text && !media) return;
+            
+            const currentApiKey = state.customApiKey || apiKey;
+            if (!currentApiKey) { alert("Lütfen ayarlardan Gemini API anahtarınızı girin."); toggleSettings(); return; }
+
+            const expert = state.selectedExpert;
+            const history = state.chatHistories[expert.id];
+            
+            let parts = [];
+            if (text) parts.push({ text: text });
+            if (media) parts.push({ inlineData: { mimeType: media.mimeType, data: media.base64Data.split(',')[1] } });
+
+            els.chatInput.value = '';
+            els.chatInput.style.height = 'auto';
+            document.getElementById('send-btn').disabled = true;
+            appendUIMessage('user', { text: text, imageBase64: media ? media.base64Data : null });
+            showTypingIndicator();
+            clearMedia();
+
+            history.push({ role: 'user', parts: parts });
+
+            try {
+                const url = `https://generativelanguage.googleapis.com/v1beta/models/${state.model}:generateContent?key=${currentApiKey}`;
+                const response = await fetch(url, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ contents: history, systemInstruction: { parts: [{ text: expert.systemPrompt + JSON_INSTRUCTION }] } })
+                });
+
+                const data = await response.json();
+                if (!response.ok) throw new Error(data.error?.message || "API Hatası");
+
+                const aiMsg = data.candidates?.[0]?.content?.parts?.[0]?.text;
+                if (aiMsg) {
+                    removeTypingIndicator();
+                    history.push({ role: 'model', parts: [{ text: aiMsg }] });
+                    appendUIMessage('ai', parseAIResponse(aiMsg));
+                }
+            } catch (error) {
+                removeTypingIndicator();
+                appendUIMessage('system', { text: "Hata: " + error.message });
+                history.pop();
+            } finally {
+                document.getElementById('send-btn').disabled = false;
+                scrollToBottom();
+            }
+        }
+
+        function showTypingIndicator() {
+            const id = 'typing-indicator';
+            if(document.getElementById(id)) return;
+            const w = document.createElement('div');
+            w.id = id;
+            w.className = `flex w-full mb-4 justify-start`;
+            w.innerHTML = `<div class="bg-white border border-gray-100 p-4 rounded-3xl rounded-tl-sm shadow-md flex items-center gap-1.5 h-12"><div class="w-2 h-2 bg-indigo-400 rounded-full typing-dot"></div><div class="w-2 h-2 bg-indigo-400 rounded-full typing-dot"></div><div class="w-2 h-2 bg-indigo-400 rounded-full typing-dot"></div></div>`;
+            els.chatMessages.appendChild(w);
+            scrollToBottom();
+        }
+
+        function removeTypingIndicator() { const el = document.getElementById('typing-indicator'); if(el) el.remove(); }
+        function scrollToBottom() { els.chatMessages.scrollTop = els.chatMessages.scrollHeight; }
+        function handleEnterPress(e) { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); } }
+        function sendQuickAction(t) { els.chatInput.value = t; sendMessage(); }
+        function escapeHtml(u) { return u ? u.toString().replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;") : ""; }
+
+        init();
+    </script>
+</body>
+</html>
