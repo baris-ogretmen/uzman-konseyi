@@ -333,27 +333,60 @@
         function handleMediaUpload(event) {
             const file = event.target.files[0];
             if (!file) return;
-            const reader = new FileReader();
-            reader.onload = (e) => {
-                const img = new Image();
-                img.onload = () => {
-                    const canvas = document.createElement('canvas');
-                    const MAX_SIZE = 1200;
-                    let w = img.width;
-                    let h = img.height;
-                    if (w > h) { if (w > MAX_SIZE) { h *= MAX_SIZE / w; w = MAX_SIZE; } }
-                    else { if (h > MAX_SIZE) { w *= MAX_SIZE / h; h = MAX_SIZE; } }
-                    canvas.width = w; canvas.height = h;
-                    const ctx = canvas.getContext('2d');
-                    ctx.drawImage(img, 0, 0, w, h);
-                    const base64 = canvas.toDataURL('image/jpeg', 0.8);
-                    state.selectedMedia = { mimeType: 'image/jpeg', base64Data: base64 };
-                    els.mediaPreviewImg.src = base64;
+
+            // PDF Yükleme Desteği
+            if (file.type === 'application/pdf') {
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    const base64 = e.target.result;
+                    state.selectedMedia = { mimeType: 'application/pdf', base64Data: base64 };
+                    els.mediaPreviewImg.src = 'https://upload.wikimedia.org/wikipedia/commons/8/87/PDF_file_icon.svg'; // PDF İkonu
                     els.mediaPreviewContainer.classList.remove('hidden');
                 };
-                img.src = e.target.result;
-            };
-            reader.readAsDataURL(file);
+                reader.readAsDataURL(file);
+            } 
+            // Video Çekme / Yükleme Desteği (Kare Alma)
+            else if (file.type.startsWith('video/')) {
+                const video = document.createElement('video');
+                video.preload = 'metadata';
+                video.src = URL.createObjectURL(file);
+                video.onloadedmetadata = () => { video.currentTime = Math.min(1, video.duration / 2); };
+                video.onseeked = () => {
+                    const canvas = document.createElement('canvas');
+                    canvas.width = video.videoWidth; canvas.height = video.videoHeight;
+                    const ctx = canvas.getContext('2d');
+                    ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+                    const base64Url = canvas.toDataURL('image/jpeg', 0.8);
+                    state.selectedMedia = { mimeType: 'image/jpeg', base64Data: base64Url };
+                    els.mediaPreviewImg.src = base64Url;
+                    els.mediaPreviewContainer.classList.remove('hidden');
+                    URL.revokeObjectURL(video.src);
+                };
+            } 
+            // Normal Resim Yükleme
+            else if (file.type.startsWith('image/')) {
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    const img = new Image();
+                    img.onload = () => {
+                        const canvas = document.createElement('canvas');
+                        const MAX_SIZE = 1200;
+                        let w = img.width;
+                        let h = img.height;
+                        if (w > h) { if (w > MAX_SIZE) { h *= MAX_SIZE / w; w = MAX_SIZE; } }
+                        else { if (h > MAX_SIZE) { w *= MAX_SIZE / h; h = MAX_SIZE; } }
+                        canvas.width = w; canvas.height = h;
+                        const ctx = canvas.getContext('2d');
+                        ctx.drawImage(img, 0, 0, w, h);
+                        const base64 = canvas.toDataURL('image/jpeg', 0.8);
+                        state.selectedMedia = { mimeType: 'image/jpeg', base64Data: base64 };
+                        els.mediaPreviewImg.src = base64;
+                        els.mediaPreviewContainer.classList.remove('hidden');
+                    };
+                    img.src = e.target.result;
+                };
+                reader.readAsDataURL(file);
+            }
         }
 
         function clearMedia() {
@@ -397,9 +430,14 @@
             let innerHTML = '';
             
             if (type === 'user') {
+                const isPdf = content.imageBase64 && content.imageBase64.includes('application/pdf');
+                const mediaHTML = isPdf 
+                    ? `<div class="bg-white p-3 rounded-xl border-4 border-slate-200 shadow-xl flex items-center gap-3 text-red-600 mb-1"><i class="fa-solid fa-file-pdf text-3xl"></i><span class="font-bold text-sm text-gray-700">PDF Belgesi Analiz Ediliyor...</span></div>`
+                    : (content.imageBase64 ? `<img src="${content.imageBase64}" class="rounded-2xl max-w-[250px] md:max-w-[400px] w-full object-cover border-4 border-white shadow-xl mb-1" />` : '');
+
                 innerHTML = `
                     <div class="max-w-[85%] md:max-w-[70%] flex flex-col items-end gap-2">
-                        ${content.imageBase64 ? `<img src="${content.imageBase64}" class="rounded-2xl max-w-[250px] md:max-w-[400px] w-full object-cover border-4 border-white shadow-xl" />` : ''}
+                        ${mediaHTML}
                         ${content.text ? `<div class="p-4 rounded-3xl rounded-tr-sm bg-indigo-600 text-white text-sm md:text-base shadow-lg font-medium"><p class="whitespace-pre-wrap">${escapeHtml(content.text)}</p></div>` : ''}
                     </div>
                 `;
@@ -556,6 +594,81 @@
         function handleEnterPress(e) { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); } }
         function sendQuickAction(t) { els.chatInput.value = t; sendMessage(); }
         function escapeHtml(u) { return u ? u.toString().replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;") : ""; }
+
+        // --- AKILLI TAHTA (WHITEBOARD) MANTIĞI ---
+        let wbCanvas, wbCtx, isDrawing = false, brushColor = 'black';
+
+        function initWhiteboard() {
+            wbCanvas = document.getElementById('whiteboard-canvas');
+            if(!wbCanvas) return;
+            wbCtx = wbCanvas.getContext('2d');
+            
+            const resize = () => {
+                wbCanvas.width = wbCanvas.parentElement.clientWidth;
+                wbCanvas.height = wbCanvas.parentElement.clientHeight - 120;
+                clearWhiteboard();
+            };
+            window.addEventListener('resize', resize);
+            resize();
+
+            const startDraw = (e) => { isDrawing = true; draw(e); };
+            const stopDraw = () => { isDrawing = false; wbCtx.beginPath(); };
+            const draw = (e) => {
+                if (!isDrawing) return;
+                e.preventDefault();
+                const rect = wbCanvas.getBoundingClientRect();
+                const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+                const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+                const x = clientX - rect.left;
+                const y = clientY - rect.top;
+
+                wbCtx.lineWidth = brushColor === 'white' ? 20 : 3;
+                wbCtx.lineCap = 'round';
+                wbCtx.strokeStyle = brushColor;
+
+                wbCtx.lineTo(x, y);
+                wbCtx.stroke();
+                wbCtx.beginPath();
+                wbCtx.moveTo(x, y);
+            };
+
+            wbCanvas.addEventListener('mousedown', startDraw);
+            wbCanvas.addEventListener('mousemove', draw);
+            wbCanvas.addEventListener('mouseup', stopDraw);
+            wbCanvas.addEventListener('mouseout', stopDraw);
+
+            wbCanvas.addEventListener('touchstart', startDraw, {passive: false});
+            wbCanvas.addEventListener('touchmove', draw, {passive: false});
+            wbCanvas.addEventListener('touchend', stopDraw);
+        }
+
+        function openWhiteboard() {
+            document.getElementById('whiteboard-modal').classList.remove('hidden');
+            document.getElementById('whiteboard-modal').classList.add('flex');
+            if(!wbCtx) initWhiteboard();
+        }
+
+        function closeWhiteboard() {
+            document.getElementById('whiteboard-modal').classList.add('hidden');
+            document.getElementById('whiteboard-modal').classList.remove('flex');
+        }
+
+        function clearWhiteboard() {
+            if(wbCtx) {
+                wbCtx.fillStyle = 'white';
+                wbCtx.fillRect(0, 0, wbCanvas.width, wbCanvas.height);
+            }
+        }
+
+        function setBrushColor(color) { brushColor = color; }
+
+        function saveWhiteboard() {
+            const base64 = wbCanvas.toDataURL('image/jpeg', 0.9);
+            state.selectedMedia = { mimeType: 'image/jpeg', base64Data: base64 };
+            els.mediaPreviewImg.src = base64;
+            els.mediaPreviewContainer.classList.remove('hidden');
+            closeWhiteboard();
+        }
 
         init();
     </script>
