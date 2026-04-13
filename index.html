@@ -122,7 +122,7 @@
             </div>
 
             <!-- Mesajlar Alanı -->
-            <div class="flex-1 overflow-y-auto p-4 md:p-10 space-y-6 pb-40 md:pb-48 scroll-smooth" id="chat-messages">
+            <div class="flex-1 overflow-y-auto p-4 md:p-10 space-y-6 pb-48 md:pb-56 scroll-smooth" id="chat-messages">
                 <!-- Mesajlar JS ile eklenecek -->
             </div>
 
@@ -137,23 +137,36 @@
                             <i class="fa-solid fa-times text-sm"></i>
                         </button>
                     </div>
-                    <p class="text-[10px] md:text-xs text-indigo-600 mt-2 font-bold bg-indigo-50 inline-block px-2 py-1 rounded-lg"><i class="fa-solid fa-brain mr-1"></i>Yapay Zeka Görseli Okumaya Hazır</p>
+                    <p id="media-preview-text" class="text-[10px] md:text-xs text-indigo-600 mt-2 font-bold bg-indigo-50 inline-block px-2 py-1 rounded-lg"><i class="fa-solid fa-brain mr-1"></i>Yapay Zeka Medyayı Okumaya Hazır</p>
                 </div>
 
                 <!-- Input Alanı -->
-                <div class="p-4 md:p-6 lg:px-12">
-                    <div class="flex gap-3 items-end max-w-4xl mx-auto">
-                        <input type="file" id="media-upload" accept="image/*" capture="environment" class="hidden" onchange="handleMediaUpload(event)">
+                <div class="p-3 md:p-5 lg:px-8">
+                    <!-- Üst Araç Çubuğu (Dosya, Galeri, Kamera, Tahta) -->
+                    <div class="flex items-center gap-2 mb-3 max-w-4xl mx-auto overflow-x-auto hide-scrollbar px-1 pb-1">
+                        <input type="file" id="doc-upload" accept=".pdf,.txt,.csv,.md,.json" class="hidden" onchange="handleMediaUpload(event)">
+                        <input type="file" id="gallery-upload" accept="image/*,video/*" class="hidden" onchange="handleMediaUpload(event)">
+                        <input type="file" id="camera-upload" accept="image/*,video/*" capture="environment" class="hidden" onchange="handleMediaUpload(event)">
                         
-                        <button onclick="document.getElementById('media-upload').click()" class="w-12 h-12 md:w-16 md:h-16 shrink-0 bg-gray-50 text-indigo-600 rounded-2xl hover:bg-indigo-100 transition-all shadow-sm flex flex-col items-center justify-center border border-gray-200 group">
-                            <i class="fa-solid fa-camera md:text-xl group-hover:scale-110 transition-transform"></i>
-                            <span class="text-[8px] md:text-[9px] font-bold mt-1 hidden md:block uppercase">Kamera</span>
+                        <button onclick="document.getElementById('doc-upload').click()" class="flex items-center gap-1.5 px-3 py-2 bg-slate-50 text-slate-700 rounded-xl hover:bg-indigo-50 hover:text-indigo-600 transition-all border border-slate-200 text-xs font-bold whitespace-nowrap shadow-sm">
+                            <i class="fa-solid fa-file-lines text-indigo-500"></i> Dosya / PDF
                         </button>
+                        <button onclick="document.getElementById('gallery-upload').click()" class="flex items-center gap-1.5 px-3 py-2 bg-slate-50 text-slate-700 rounded-xl hover:bg-pink-50 hover:text-pink-600 transition-all border border-slate-200 text-xs font-bold whitespace-nowrap shadow-sm">
+                            <i class="fa-solid fa-images text-pink-500"></i> Galeri
+                        </button>
+                        <button onclick="document.getElementById('camera-upload').click()" class="flex items-center gap-1.5 px-3 py-2 bg-slate-50 text-slate-700 rounded-xl hover:bg-emerald-50 hover:text-emerald-600 transition-all border border-slate-200 text-xs font-bold whitespace-nowrap shadow-sm">
+                            <i class="fa-solid fa-camera text-emerald-500"></i> Kamera / Video
+                        </button>
+                        <button onclick="openWhiteboard()" class="flex items-center gap-1.5 px-3 py-2 bg-slate-50 text-slate-700 rounded-xl hover:bg-amber-50 hover:text-amber-600 transition-all border border-slate-200 text-xs font-bold whitespace-nowrap shadow-sm">
+                            <i class="fa-solid fa-pen-nib text-amber-500"></i> Akıllı Tahta
+                        </button>
+                    </div>
 
+                    <div class="flex gap-3 items-end max-w-4xl mx-auto">
                         <div class="flex-1 bg-gray-50 rounded-[2rem] flex items-center pl-5 pr-2 py-1.5 border border-gray-200 focus-within:border-indigo-400 focus-within:bg-white focus-within:shadow-xl focus-within:shadow-indigo-50 transition-all">
                             <textarea
                                 id="chat-input"
-                                placeholder="Sorunuzu yazın veya analiz edilecek karne/denemeyi yükleyin..."
+                                placeholder="Sorunuzu yazın veya analiz edilecek belgeyi/medyayı seçin..."
                                 class="flex-1 bg-transparent border-none focus:ring-0 text-sm md:text-base py-4 px-0 max-h-32 outline-none font-medium placeholder:text-gray-400"
                                 rows="1"
                                 oninput="this.style.height = ''; this.style.height = Math.min(this.scrollHeight, 120) + 'px'"
@@ -165,10 +178,34 @@
                             </button>
                         </div>
                     </div>
-                    <div class="text-center mt-3 flex items-center justify-center gap-4">
-                        <span class="text-[10px] md:text-xs text-gray-400 font-bold bg-gray-100 px-3 py-1 rounded-full"><i class="fa-solid fa-microchip text-indigo-400 mr-1.5"></i>Gemini Multimodal 2.5 Engine</span>
-                    </div>
                 </div>
+            </div>
+        </div>
+
+        <!-- 3. GÖRÜNÜM: AKILLI TAHTA (ÇİZİM VE ÇÖZÜM) -->
+        <div id="whiteboard-modal" class="absolute inset-0 z-[60] bg-white hidden flex-col transition-all duration-300">
+            <div class="bg-slate-800 text-white px-4 py-3 flex justify-between items-center shadow-md">
+                <div class="flex items-center gap-3">
+                    <i class="fa-solid fa-chalkboard text-xl text-amber-400"></i>
+                    <h3 class="font-bold text-sm md:text-base">Akıllı Tahta (Çiz ve Çözdür)</h3>
+                </div>
+                <div class="flex gap-2">
+                    <button onclick="clearWhiteboard()" class="px-3 py-1.5 bg-slate-700 hover:bg-slate-600 rounded-lg text-xs md:text-sm font-bold transition-colors"><i class="fa-solid fa-trash-can mr-1"></i> Temizle</button>
+                    <button onclick="closeWhiteboard()" class="px-3 py-1.5 bg-red-500 hover:bg-red-600 rounded-lg text-xs md:text-sm font-bold transition-colors"><i class="fa-solid fa-times mr-1"></i> Kapat</button>
+                </div>
+            </div>
+            <div class="bg-slate-100 p-2 flex justify-center gap-4 border-b border-gray-300 shadow-inner">
+                <button onclick="setBrushColor('black')" class="w-8 h-8 md:w-10 md:h-10 rounded-full bg-black ring-2 ring-offset-1 ring-gray-400"></button>
+                <button onclick="setBrushColor('blue')" class="w-8 h-8 md:w-10 md:h-10 rounded-full bg-blue-600"></button>
+                <button onclick="setBrushColor('red')" class="w-8 h-8 md:w-10 md:h-10 rounded-full bg-red-600"></button>
+                <button onclick="setBrushColor('green')" class="w-8 h-8 md:w-10 md:h-10 rounded-full bg-green-600"></button>
+                <button onclick="setBrushColor('white')" class="w-8 h-8 md:w-10 md:h-10 rounded-full bg-white border-2 border-gray-300 flex items-center justify-center text-xs font-bold text-gray-500" title="Silgi"><i class="fa-solid fa-eraser"></i></button>
+            </div>
+            <canvas id="whiteboard-canvas" class="flex-1 w-full bg-white cursor-crosshair touch-none"></canvas>
+            <div class="p-4 bg-white border-t border-gray-200">
+                <button onclick="saveWhiteboard()" class="w-full bg-indigo-600 text-white py-3 md:py-4 rounded-xl font-black text-base md:text-lg hover:bg-indigo-700 transition-colors shadow-lg flex items-center justify-center gap-2">
+                    <i class="fa-solid fa-check"></i> Çizimi Yapay Zekaya Gönder
+                </button>
             </div>
         </div>
 
@@ -212,7 +249,9 @@
             { id: 'tercih_robotu', categoryId: 'vizyon', icon: '🎓', name: 'LGS/YKS Tercih Robotu', desc: 'Sıralama ve ilgiye göre liste hazırlar.', systemPrompt: 'Sen bir Tercih Danışmanısın. Sıralama verilerini, yüzdelik dilimleri ve öğrenci ilgilerini analiz ederek rasyonel bir tercih listesi oluştur.' },
             { id: 'coach', categoryId: 'vizyon', icon: '🧭', name: 'Eğitim Koçu & Motivasyon', desc: 'Zihin haritaları ve şefkatli rehberlik.', systemPrompt: 'Sen bir Eğitim Koçusun. Nebevi eğitim modeliyle şefkatli yaklaş, kaygıyı yönet ve çalışma programı öner.' },
             { id: 'tech', categoryId: 'vizyon', icon: '💻', name: 'Yazılım, YZ & Robotik Ustası', desc: 'Algoritma mantığı ve kod hatası çözücü.', systemPrompt: 'Sen bir Yazılım, Yapay Zeka ve Robotik Kodlama Ustasısın. Hataları (debug) bulma, algoritma kurma ve temiz kod yazma (Clean Code) prensiplerini dijital bir dille, modern teknolojileri örnek göstererek anlat.' },
-            { id: 'chess', categoryId: 'vizyon', icon: '♟️', name: 'Satranç & Akıl Oyunları Büyükustası', desc: 'Hamle analizi ve stratejik derinlik.', systemPrompt: 'Sen bir Satranç ve Akıl Oyunları Büyükustasısın. Tahtadaki konumları değerlendir, açılış teorileri, oyun ortası planları ve oyun sonu teknikleri hakkında varyantlar sunarak derinlemesine analiz yap.' }
+            { id: 'chess', categoryId: 'vizyon', icon: '♟️', name: 'Satranç & Akıl Oyunları Büyükustası', desc: 'Hamle analizi ve stratejik derinlik.', systemPrompt: 'Sen bir Satranç ve Akıl Oyunları Büyükustasısın. Tahtadaki konumları değerlendir, açılış teorileri, oyun ortası planları ve oyun sonu teknikleri hakkında varyantlar sunarak derinlemesine analiz yap.' },
+            { id: 'tez_danismani', categoryId: 'vizyon', icon: '📜', name: 'Akademik Tez & Makale Asistanı', desc: 'Üniversite ve lisansüstü akademik destek.', systemPrompt: 'Sen bir Akademik Tez ve Makale Danışmanısın. Üniversite öğrencileri için literatür taraması mantığını, APA formatını, araştırma yöntemlerini açıkla ve intihalden kaçınarak akademik dille yazım tüyoları ver.' },
+            { id: 'oyun_terapisti', categoryId: 'vizyon', icon: '🎨', name: 'Oyun Temelli Öğrenme Uzmanı', desc: 'Anaokulu ve ilkokul için drama ve oyun.', systemPrompt: 'Sen bir Oyun Temelli Öğrenme Uzmanı ve Drama Liderisin. Konuları anaokulu ve ilkokul seviyesine indirgeyerek, evde veya sınıfta oynanabilecek oyunlarla, masal anlatıcılığı ve yaratıcı drama teknikleriyle eğlenceli ve pedagojik bir şekilde aktar.' }
         ];
 
         // --- DURUM YÖNETİMİ ---
@@ -240,8 +279,7 @@
             inputModel: document.getElementById('input-model'),
             headerSubtitle: document.getElementById('header-subtitle'),
             mediaPreviewContainer: document.getElementById('media-preview-container'),
-            mediaPreviewImg: document.getElementById('media-preview-img'),
-            mediaUpload: document.getElementById('media-upload')
+            mediaPreviewImg: document.getElementById('media-preview-img')
         };
 
         function init() {
@@ -334,17 +372,30 @@
             const file = event.target.files[0];
             if (!file) return;
 
+            const previewTextEl = document.getElementById('media-preview-text');
+
             // PDF Yükleme Desteği
             if (file.type === 'application/pdf') {
                 const reader = new FileReader();
                 reader.onload = (e) => {
-                    const base64 = e.target.result;
-                    state.selectedMedia = { mimeType: 'application/pdf', base64Data: base64 };
-                    els.mediaPreviewImg.src = 'https://upload.wikimedia.org/wikipedia/commons/8/87/PDF_file_icon.svg'; // PDF İkonu
+                    state.selectedMedia = { mimeType: 'application/pdf', base64Data: e.target.result };
+                    els.mediaPreviewImg.src = 'https://upload.wikimedia.org/wikipedia/commons/8/87/PDF_file_icon.svg'; 
+                    previewTextEl.innerHTML = `<i class="fa-solid fa-file-pdf mr-1"></i>PDF Belgesi Eklendi`;
                     els.mediaPreviewContainer.classList.remove('hidden');
                 };
                 reader.readAsDataURL(file);
             } 
+            // Metin ve Veri Dosyaları Desteği (.txt, .csv, vb.)
+            else if (file.type.startsWith('text/') || file.name.match(/\.(txt|csv|md|json)$/i)) {
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    state.selectedMedia = { mimeType: 'text/plain', base64Data: e.target.result };
+                    els.mediaPreviewImg.src = 'https://upload.wikimedia.org/wikipedia/commons/e/ea/Text_file_icon.svg'; 
+                    previewTextEl.innerHTML = `<i class="fa-solid fa-file-lines mr-1"></i>Metin/Veri Belgesi Eklendi`;
+                    els.mediaPreviewContainer.classList.remove('hidden');
+                };
+                reader.readAsDataURL(file);
+            }
             // Video Çekme / Yükleme Desteği (Kare Alma)
             else if (file.type.startsWith('video/')) {
                 const video = document.createElement('video');
@@ -359,11 +410,12 @@
                     const base64Url = canvas.toDataURL('image/jpeg', 0.8);
                     state.selectedMedia = { mimeType: 'image/jpeg', base64Data: base64Url };
                     els.mediaPreviewImg.src = base64Url;
+                    previewTextEl.innerHTML = `<i class="fa-solid fa-video mr-1"></i>Video Karesi Analiz İçin Çekildi`;
                     els.mediaPreviewContainer.classList.remove('hidden');
                     URL.revokeObjectURL(video.src);
                 };
             } 
-            // Normal Resim Yükleme
+            // Normal Resim Yükleme (Galeri/Kamera)
             else if (file.type.startsWith('image/')) {
                 const reader = new FileReader();
                 reader.onload = (e) => {
@@ -371,8 +423,7 @@
                     img.onload = () => {
                         const canvas = document.createElement('canvas');
                         const MAX_SIZE = 1200;
-                        let w = img.width;
-                        let h = img.height;
+                        let w = img.width; let h = img.height;
                         if (w > h) { if (w > MAX_SIZE) { h *= MAX_SIZE / w; w = MAX_SIZE; } }
                         else { if (h > MAX_SIZE) { w *= MAX_SIZE / h; h = MAX_SIZE; } }
                         canvas.width = w; canvas.height = h;
@@ -381,18 +432,24 @@
                         const base64 = canvas.toDataURL('image/jpeg', 0.8);
                         state.selectedMedia = { mimeType: 'image/jpeg', base64Data: base64 };
                         els.mediaPreviewImg.src = base64;
+                        previewTextEl.innerHTML = `<i class="fa-solid fa-image mr-1"></i>Görsel Optimize Edildi`;
                         els.mediaPreviewContainer.classList.remove('hidden');
                     };
                     img.src = e.target.result;
                 };
                 reader.readAsDataURL(file);
+            } else {
+                alert("Desteklenmeyen dosya türü. Lütfen PDF, Metin, Resim veya Video yükleyin.");
             }
+            
+            // Dosya seçildikten sonra input'u sıfırla ki aynı dosyayı tekrar seçebilsin
+            event.target.value = '';
         }
 
         function clearMedia() {
             state.selectedMedia = null;
-            els.mediaUpload.value = '';
             els.mediaPreviewContainer.classList.add('hidden');
+            document.getElementById('media-preview-text').innerHTML = `<i class="fa-solid fa-brain mr-1"></i>Yapay Zeka Medyayı Okumaya Hazır`;
         }
 
         function parseAIResponse(text) {
@@ -411,7 +468,7 @@
         function renderChatMessages() {
             els.chatMessages.innerHTML = '';
             const history = state.chatHistories[state.selectedExpert.id];
-            appendUIMessage('system', { text: `Hoş geldin! Ben ${state.selectedExpert.name}. Analiz için sorunu yazabilir veya karnenizin/sorunuzun fotoğrafını çekip gönderebilirsin.` });
+            appendUIMessage('system', { text: `Hoş geldin! Ben ${state.selectedExpert.name}. Analiz için sorunu yazabilir veya belgenizin/sorunuzun fotoğrafını çekip gönderebilirsin.` });
             history.forEach(msg => {
                 if (msg.role === 'user') {
                     const txt = msg.parts.find(p => p.text)?.text || '';
@@ -431,9 +488,16 @@
             
             if (type === 'user') {
                 const isPdf = content.imageBase64 && content.imageBase64.includes('application/pdf');
-                const mediaHTML = isPdf 
-                    ? `<div class="bg-white p-3 rounded-xl border-4 border-slate-200 shadow-xl flex items-center gap-3 text-red-600 mb-1"><i class="fa-solid fa-file-pdf text-3xl"></i><span class="font-bold text-sm text-gray-700">PDF Belgesi Analiz Ediliyor...</span></div>`
-                    : (content.imageBase64 ? `<img src="${content.imageBase64}" class="rounded-2xl max-w-[250px] md:max-w-[400px] w-full object-cover border-4 border-white shadow-xl mb-1" />` : '');
+                const isTextFile = content.imageBase64 && content.imageBase64.includes('text/plain');
+                
+                let mediaHTML = '';
+                if (isPdf) {
+                    mediaHTML = `<div class="bg-white p-3 rounded-xl border-4 border-slate-200 shadow-xl flex items-center gap-3 text-red-600 mb-1"><i class="fa-solid fa-file-pdf text-3xl"></i><span class="font-bold text-sm text-gray-700">PDF Belgesi Gönderildi</span></div>`;
+                } else if (isTextFile) {
+                    mediaHTML = `<div class="bg-white p-3 rounded-xl border-4 border-slate-200 shadow-xl flex items-center gap-3 text-blue-600 mb-1"><i class="fa-solid fa-file-lines text-3xl"></i><span class="font-bold text-sm text-gray-700">Metin Belgesi Gönderildi</span></div>`;
+                } else if (content.imageBase64) {
+                    mediaHTML = `<img src="${content.imageBase64}" class="rounded-2xl max-w-[250px] md:max-w-[400px] w-full object-cover border-4 border-white shadow-xl mb-1" />`;
+                }
 
                 innerHTML = `
                     <div class="max-w-[85%] md:max-w-[70%] flex flex-col items-end gap-2">
