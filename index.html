@@ -1,3 +1,4 @@
+```html
 <!DOCTYPE html>
 <html lang="tr">
 <head>
@@ -72,7 +73,7 @@
                 </div>
                 
                 <div class="bg-indigo-50 border-l-4 border-indigo-500 p-4 mb-6 rounded-r-lg">
-                    <p class="text-xs md:text-sm text-indigo-800"><b>Barış Hocam;</b> Multimodal (Görsel+Metin+Ses) analizler için Gemini API anahtarınızı girin. Bu anahtar sadece bu tarayıcıda saklanır.</p>
+                    <p class="text-xs md:text-sm text-indigo-800"><b>Barış Hocam;</b> Multimodal (Görsel+Metin+Ses) analizler için Gemini API anahtarınızı ve kullanmak istediğiniz modeli aşağıya girebilirsiniz.</p>
                 </div>
 
                 <div class="space-y-4 flex-1">
@@ -81,17 +82,15 @@
                         <input type="password" id="input-api-key" placeholder="AIzaSy..." class="w-full px-4 py-3 md:py-4 rounded-xl border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all">
                     </div>
                     <div>
-                        <label class="block text-sm font-bold text-gray-700 mb-1">Model Seçimi</label>
-                        <select id="input-model" class="w-full px-4 py-3 md:py-4 rounded-xl border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all">
-                            <option value="gemini-2.5-flash-preview-09-2025">Gemini 2.5 Flash (En Hızlı)</option>
-                            <option value="gemini-2.5-pro-preview-09-2025">Gemini 2.5 Pro (Derin Analiz)</option>
-                        </select>
+                        <label class="block text-sm font-bold text-gray-700 mb-1">Yapay Zeka Modeli (Manuel Giriş)</label>
+                        <input type="text" id="input-model" placeholder="Örn: gemini-2.5-flash-preview-09-2025" class="w-full px-4 py-3 md:py-4 rounded-xl border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all font-mono text-sm">
+                        <p class="text-[10px] text-gray-500 mt-1">İstediğiniz model adını (örn: gemini-1.5-pro, gemini-2.5-flash) buraya yazabilirsiniz.</p>
                     </div>
                     
                     <div class="bg-slate-50 border border-slate-200 p-4 rounded-xl mt-4 flex items-center justify-between">
                         <div>
                             <label class="block text-sm font-bold text-gray-800">Google Arama Motoru (Grounding)</label>
-                            <p class="text-xs text-gray-500 mt-1">Yapay zeka güncel veriler için internette arama yapsın.</p>
+                            <p class="text-[10px] text-gray-500 mt-1">Yapay zeka güncel veriler için internette arama yapsın.</p>
                         </div>
                         <label class="relative inline-flex items-center cursor-pointer">
                             <input type="checkbox" id="input-web-search" class="sr-only peer">
@@ -101,7 +100,7 @@
                 </div>
 
                 <button onclick="saveSettings()" class="w-full bg-blue-600 text-white py-4 md:py-5 rounded-xl font-bold text-lg hover:bg-blue-700 transition-colors shadow-lg flex items-center justify-center gap-2 mt-4 md:mt-6">
-                    <i class="fa-solid fa-save"></i> Konfigürasyonu Kaydet
+                    <i class="fa-solid fa-save"></i> Ayarları Kaydet
                 </button>
             </div>
         </div>
@@ -133,7 +132,7 @@
             </div>
 
             <!-- Mesajlar Alanı -->
-            <div class="flex-1 overflow-y-auto p-4 md:p-10 space-y-6 pb-48 md:pb-56 scroll-smooth" id="chat-messages">
+            <div class="flex-1 overflow-y-auto p-4 md:p-10 space-y-6 pb-56 md:pb-64 scroll-smooth" id="chat-messages">
                 <!-- Mesajlar JS ile eklenecek -->
             </div>
 
@@ -184,7 +183,7 @@
                                 onkeydown="handleEnterPress(event)"
                             ></textarea>
                             
-                            <button onclick="toggleRecording()" id="mic-btn" class="w-10 h-10 md:w-12 md:h-12 shrink-0 bg-gray-100 text-gray-600 rounded-full hover:bg-red-100 hover:text-red-600 transition-all shadow-sm flex items-center justify-center ml-2 border border-gray-200">
+                            <button onclick="toggleRecording()" id="mic-btn" class="w-10 h-10 md:w-12 md:h-12 shrink-0 bg-gray-100 text-gray-600 rounded-full hover:bg-red-100 hover:text-red-600 transition-all shadow-sm flex items-center justify-center ml-2 border border-gray-200" title="Sesli Soru Sor">
                                 <i class="fa-solid fa-microphone md:text-lg"></i>
                             </button>
                             <button onclick="sendMessage()" id="send-btn" class="w-12 h-12 md:w-14 md:h-14 shrink-0 bg-indigo-600 text-white rounded-full hover:bg-indigo-700 disabled:opacity-50 disabled:bg-gray-400 transition-all shadow-lg flex items-center justify-center ml-2">
@@ -227,8 +226,6 @@
 
     <script>
         // --- API KEY VE KONFİGÜRASYON ---
-        const apiKey = ""; // Çevresel değişken tarafından doldurulacak
-        
         const JSON_INSTRUCTION = `\n\nÖNEMLİ KURAL: Yanıtını ASLA düz metin olarak verme. Daima ve SADECE aşağıdaki JSON formatında, geçerli bir JSON objesi olarak ver. Markdown kod blokları ( \`\`\`json ... \`\`\` ) kullanabilirsin:\n{\n "sorunun_ozeti": "Karne analizi ise ders listesi ve netler, soru ise konunun kısa özeti",\n "adim_adim_cozum": ["Analiz Adımı 1...", "Analiz Adımı 2..."],\n "kilit_formul": "Örn: Analizde kritik eksik olan konu veya formül",\n "dogru_cevap": "Örn: Başarı Yüzdesi veya Soru Cevabı",\n "ogretmen_tavsiyesi": "Motivasyonel ve teknik tavsiye"\n}`;
 
         // --- 1. VERİ TABANI ---
@@ -358,7 +355,7 @@
 
         function saveSettings() {
             state.customApiKey = els.inputApiKey.value.trim();
-            state.model = els.inputModel.value;
+            state.model = els.inputModel.value.trim() || 'gemini-2.5-flash-preview-09-2025';
             state.useWebSearch = document.getElementById('input-web-search').checked;
             
             localStorage.setItem('konseyApiKey', state.customApiKey);
@@ -396,7 +393,6 @@
 
             const previewTextEl = document.getElementById('media-preview-text');
 
-            // PDF Yükleme Desteği
             if (file.type === 'application/pdf') {
                 const reader = new FileReader();
                 reader.onload = (e) => {
@@ -407,7 +403,6 @@
                 };
                 reader.readAsDataURL(file);
             } 
-            // Metin ve Veri Dosyaları Desteği (.txt, .csv, vb.)
             else if (file.type.startsWith('text/') || file.name.match(/\.(txt|csv|md|json)$/i)) {
                 const reader = new FileReader();
                 reader.onload = (e) => {
@@ -418,7 +413,6 @@
                 };
                 reader.readAsDataURL(file);
             }
-            // Video Çekme / Yükleme Desteği (Kare Alma)
             else if (file.type.startsWith('video/')) {
                 const video = document.createElement('video');
                 video.preload = 'metadata';
@@ -437,7 +431,6 @@
                     URL.revokeObjectURL(video.src);
                 };
             } 
-            // Normal Resim Yükleme (Galeri/Kamera)
             else if (file.type.startsWith('image/')) {
                 const reader = new FileReader();
                 reader.onload = (e) => {
@@ -464,7 +457,6 @@
                 alert("Desteklenmeyen dosya türü. Lütfen PDF, Metin, Resim veya Video yükleyin.");
             }
             
-            // Dosya seçildikten sonra input'u sıfırla ki aynı dosyayı tekrar seçebilsin
             event.target.value = '';
         }
 
@@ -639,7 +631,7 @@
             const media = state.selectedMedia;
             if (!text && !media) return;
             
-            const currentApiKey = state.customApiKey || apiKey;
+            const currentApiKey = state.customApiKey || "";
             if (!currentApiKey) { alert("Lütfen ayarlardan Gemini API anahtarınızı girin."); toggleSettings(); return; }
 
             const expert = state.selectedExpert;
@@ -661,7 +653,6 @@
             try {
                 const url = `https://generativelanguage.googleapis.com/v1beta/models/${state.model}:generateContent?key=${currentApiKey}`;
                 
-                // Payload hazırlığı ve Google Search Grounding Eklemesi
                 const payloadData = { 
                     contents: history, 
                     systemInstruction: { parts: [{ text: expert.systemPrompt + JSON_INSTRUCTION }] } 
@@ -833,3 +824,6 @@
     </script>
 </body>
 </html>
+
+
+```
